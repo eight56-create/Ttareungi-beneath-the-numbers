@@ -14,9 +14,10 @@ V2 results. Large raw source files are submitted separately in the Pitch Canvas.
 ## Reproducibility scope
 
 - **Layer 1 — raw data:** `01_preprocessing.py → 02_regression_analysis.py → 03_demand_prediction.py` rebuild preprocessing, the upstream demand-factor regression, and demand estimation from the public raw-data layout documented in `INPUTS.md`.
-- **Historical Final V2 allocation builder:** `Code/final_v2_allocation_from_master.py` is the original fixed-fleet allocation script that produced the submitted Final V2 recommendation/system/district exports from `ttareungi_FINAL_master_with_supply_202509.csv`.
+- **Supply-master bridge:** `Code/build_supply_master.py` takes `ttareungi_FINAL_master_202509.csv`, station-capacity data, and the hourly available-bike file, then builds `ttareungi_FINAL_master_with_supply_202509.csv`. Its later daily redistribution outputs are retained as legacy diagnostics, not as the canonical Final V2 allocation.
+- **Historical Final V2 allocation builder:** `Code/final_v2_allocation_from_master.py` takes `ttareungi_FINAL_master_with_supply_202509.csv` and produces the submitted Final V2 recommendation/system/district exports.
 - **Layer 2 — published results:** the committed `inputs/ttareungi_FINAL_recommendations_v2_202509.csv` is the authoritative submitted Final V2 allocation export. `Code/build_final_v2.py → 04_supply_comparison.py → 05_verify_published_results.py` recomputes and verifies the regression and redistribution results reported by the website/PDF.
-- **Not claimed:** one uninterrupted run from raw public data through Step 03 to `ttareungi_FINAL_master_with_supply_202509.csv` and then to the official allocation totals. That intermediate-build link is the remaining end-to-end reproducibility gap.
+- **Remaining boundary:** the repository does not currently identify the exact script/rename step that turns the Step 03 output into `ttareungi_FINAL_master_202509.csv`. Everything from that master through the official Final V2 outputs is now versioned.
 
 A diagnostic rerun from the 80,601-row master can yield **4,876 / 4,212** because of integer-rounding ties; the submitted Final V2 allocation export contains the official **4,874 / 4,206** assignments.
 
@@ -215,6 +216,26 @@ Outputs:
 
 **Validation scope:** Step 03 performs forward temporal validation of the historical normal-day baseline only. It is not independent held-out validation of the full effective-demand proxy, the regression fallback, or the Final V2 allocation model.
 
+### Supply-master builder
+
+`Code/build_supply_master.py`
+
+This restored Colab-style script reads:
+
+```
+/content/ttareungi_FINAL_master_202509.csv
+/content/공공자전거 대여소 정보(25.6월 기준).xlsx
+/content/data_2509.csv
+```
+
+It merges nominal dock capacity and 00:00 available-bike inventory, constructs the hybrid final demand and starting-stock utilization variables used downstream, and writes:
+
+```
+/content/ttareungi_FINAL_master_with_supply_202509.csv
+```
+
+The same script also writes older daily redistribution diagnostics. Those legacy outputs are **not** the canonical Final V2 recommendation.
+
 ### Historical Final V2 allocation builder
 
 `Code/final_v2_allocation_from_master.py`
@@ -233,7 +254,7 @@ ttareungi_FINAL_system_check_v2_202509.csv
 ttareungi_FINAL_district_summary_v2_202509.csv
 ```
 
-The submitted outputs are versioned in `inputs/` and `reference/`. The repository does **not** currently claim to reconstruct the required `ttareungi_FINAL_master_with_supply_202509.csv` directly from Step 03; that is the remaining end-to-end gap.
+The submitted outputs are versioned in `inputs/` and `reference/`. The only remaining upstream documentation gap is the exact creation/rename step for `ttareungi_FINAL_master_202509.csv` from the Step 03 demand-estimation stage.
 
 ### Step 04 — published Final V2 analysis
 
@@ -307,7 +328,7 @@ demand, and the analysis does not establish causality.
 ## Repository map
 
 ```
-Code/                  analysis and verification scripts
+Code/                  raw pipeline, supply-master builder, Final V2 allocation, and verification scripts
 site-data/             versioned rows/data read by the live website
 inputs/                authoritative submitted Final V2 recommendation CSV
 reference/             frozen publication contract + Final V2 summary exports
