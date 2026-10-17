@@ -55,7 +55,33 @@ Source families documented by the project are:
 Use the same source versions as the Pitch Canvas submission if you want the
 same upstream master data.
 
-## C. Historical Final V2 allocation from the final master
+## C. Supply-master construction
+
+The restored supply-master builder is:
+
+```
+Code/build_supply_master.py
+```
+
+It follows the original Colab `/content/` layout and reads:
+
+```
+/content/ttareungi_FINAL_master_202509.csv
+/content/공공자전거 대여소 정보(25.6월 기준).xlsx
+/content/data_2509.csv
+```
+
+It creates:
+
+```
+/content/ttareungi_FINAL_master_with_supply_202509.csv
+```
+
+The script merges station capacity and 00:00 bike inventory, constructs the hybrid final predicted demand, and calculates the starting-stock utilization hierarchy used by the Final V2 allocation builder. The older daily redistribution files produced later in the same script are legacy diagnostics and are not the canonical Final V2 allocation.
+
+**Remaining upstream boundary:** the repository does not yet identify the exact script or rename step that produced `ttareungi_FINAL_master_202509.csv` from the Step 03 demand-estimation stage.
+
+## D. Historical Final V2 allocation from the supply master
 
 The restored original allocation builder is:
 
@@ -83,7 +109,7 @@ ttareungi_FINAL_system_check_v2_202509.csv
 ttareungi_FINAL_district_summary_v2_202509.csv
 ```
 
-**Current boundary:** the repository does not yet contain the exact bridge that constructs `ttareungi_FINAL_master_with_supply_202509.csv` from the Step 03 demand-estimate output. Therefore it does not claim a single uninterrupted raw-data → official-allocation run. The original allocation builder and the submitted outputs are versioned here so this boundary is explicit.
+The original allocation builder and the submitted outputs are versioned in this repository.
 
 ## Files created by each script
 
@@ -92,6 +118,7 @@ ttareungi_FINAL_district_summary_v2_202509.csv
 | `01_preprocessing.py` | `/content/ttareungi_regression_master_202509.csv`, `/content/ttareungi_regression_train_202509.csv`, plus documented spatial intermediate CSVs | Step 02 |
 | `02_regression_analysis.py` | `/content/ttareungi_master_with_regression_predictions_202509.csv`, regression coefficients and metrics | Step 03 |
 | `03_demand_prediction.py` | `/content/ttareungi_demand_estimates_202509.csv`, temporal validation CSV | Raw-data demand reconstruction |
+| `build_supply_master.py` | `/content/ttareungi_FINAL_master_with_supply_202509.csv` plus legacy daily supply diagnostics | Supply-capacity/inventory bridge into Final V2 |
 | `final_v2_allocation_from_master.py` | Final V2 recommendations, system check, district summary | Historical allocation reproduction from the final supply master |
 | `04_supply_comparison.py` | `reproduced-results/published_metrics.json`, HC3 results, weekpart totals, district summary, normalized publication rows | Final V2 publication audit |
 | `05_verify_published_results.py` | no analytical replacement file; exits 0 only when the publication contract matches exactly | Reproducibility gate |
