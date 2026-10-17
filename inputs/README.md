@@ -10,4 +10,4 @@ python Code/build_final_v2.py
 
 The historical allocation builder that produced this export from `ttareungi_FINAL_master_with_supply_202509.csv` is restored as `Code/final_v2_allocation_from_master.py`.
 
-Large public/raw source files are still not committed. See [`INPUTS.md`](../INPUTS.md) for the Colab `/content/` layout and the explicitly documented missing bridge between Step 03 and the final supply master.
+`Code/build_supply_master.py` is now also restored; it creates `ttareungi_FINAL_master_with_supply_202509.csv` from `ttareungi_FINAL_master_202509.csv`, station-capacity data, and the hourly available-bike file. Large public/raw source files are still not committed. See [`INPUTS.md`](../INPUTS.md) for the Colab `/content/` layout and the remaining upstream boundary: the exact creation/rename step for `ttareungi_FINAL_master_202509.csv` from Step 03.
