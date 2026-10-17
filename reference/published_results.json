@@ -1,0 +1,55 @@
+{
+  "publication": "Final redistribution v2",
+  "published_date": "2026-10-15",
+  "master_sha256": "2ffe2c0acdd1106fa4eaa549ddb20014dc23243b2da4333998869a65458af2ff",
+  "rows": 5389,
+  "stations": 2695,
+  "allocated_station_weekparts": 4942,
+  "weekparts": {
+    "Weekday": {
+      "stations_total": 2695,
+      "allocated": 2472,
+      "fleet_in_pool": 26638,
+      "bikes_to_move": 4874,
+      "n_add": 1069,
+      "n_remove": 1099,
+      "n_keep": 304,
+      "intercept": 9.785000099764218,
+      "slope_per100": 4.577691959317959,
+      "r2": 0.12894966512865147,
+      "benchmark_per100": 23.188999036677057,
+      "zero_intercept_wald": 1731.6896879415497
+    },
+    "Weekend": {
+      "stations_total": 2694,
+      "allocated": 2470,
+      "fleet_in_pool": 27836,
+      "bikes_to_move": 4206,
+      "n_add": 1052,
+      "n_remove": 1088,
+      "n_keep": 330,
+      "intercept": 10.323340420857344,
+      "slope_per100": 4.267638450745887,
+      "r2": 0.09325482607040769,
+      "benchmark_per100": 27.784131153346713,
+      "zero_intercept_wald": 3463.298226084326
+    }
+  },
+  "sensitivity": {
+    "delta_turns_cap12": 0.9787535410764873,
+    "delta_turns_nocap": 0.9945366248482396,
+    "delta_demand_plus30min": 0.9777418049372724,
+    "delta_no_dock_bound": 0.8723188992310805,
+    "delta_H0_demand_proportional": 0.7270335896398219
+  },
+  "flags": {
+    "TARGET_ABOVE_NOMINAL_DOCKS": 1889,
+    "FEW_NORMAL_DAYS": 1363,
+    "STOCK_EXCEEDS_DOCKS": 1313,
+    "DEMAND_FALLBACK": 630,
+    "TURNOVER_SYSTEM_MEDIAN": 630,
+    "TURNOVER_CLIPPED": 33
+  },
+  "high_confidence_rows": 367,
+  "missing_normal_days": 242
+}
