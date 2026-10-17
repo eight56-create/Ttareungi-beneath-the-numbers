@@ -1,0 +1,77 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 1638 >>
+stream
+BT
+50 752 Td
+/F1 14 Tf (METHODOLOGY CLARIFICATION - FINAL V2) Tj
+0 -15 Td
+/F1 10 Tf (Group 19 / Seoul Ttareungi / Revised 17 October 2026) Tj
+0 -15 Td
+/F1 8 Tf () Tj
+0 -18 Td
+/F1 12 Tf (Normal-day definition) Tj
+0 -15 Td
+/F1 10 Tf (A normal day is a station-day with no hourly snapshot showing zero available bikes.) Tj
+0 -15 Td
+/F1 10 Tf (Demand uses the station's average on normal days of the same weekpart \(at least 3 days\),) Tj
+0 -15 Td
+/F1 10 Tf (else its average on all normal days \(at least 5\), else a regression estimate \(630 rows\).) Tj
+0 -15 Td
+/F1 8 Tf () Tj
+0 -18 Td
+/F1 12 Tf (Correlation units) Tj
+0 -15 Td
+/F1 10 Tf (District-level equity check: Spearman rank correlation between district net move and) Tj
+0 -15 Td
+/F1 10 Tf (district demand per station is 0.05 on weekdays and -0.06 on weekends.) Tj
+0 -15 Td
+/F1 10 Tf (Station-level model summary: Spearman correlation between station move and predicted) Tj
+0 -15 Td
+/F1 10 Tf (demand is +0.054 on weekdays and +0.0043 on weekends. These statistics use different) Tj
+0 -15 Td
+/F1 10 Tf (aggregation units and are not contradictory.) Tj
+0 -15 Td
+/F1 8 Tf () Tj
+0 -18 Td
+/F1 12 Tf (Interpretation) Tj
+0 -15 Td
+/F1 10 Tf (The original hypothesis concerns effective demand, including unmet requests. Predicted) Tj
+0 -15 Td
+/F1 10 Tf (demand is a proxy, so the station-level regression and redistribution scenario are) Tj
+0 -15 Td
+/F1 10 Tf (exploratory association and planning results, not causal evidence.) Tj
+0 -15 Td
+/F1 8 Tf () Tj
+0 -18 Td
+/F1 12 Tf (Source repository) Tj
+0 -15 Td
+/F1 10 Tf (https://github.com/eight56-create/Ttareungi-beneath-the-numbers) Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2000
+%%EOF
