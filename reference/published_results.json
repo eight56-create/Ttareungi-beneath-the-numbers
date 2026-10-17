@@ -5,34 +5,132 @@
   "rows": 5389,
   "stations": 2695,
   "allocated_station_weekparts": 4942,
-  "weekparts": {
+  "systems": {
     "Weekday": {
+      "weekpart": "Weekday",
       "stations_total": 2695,
+      "inactive": 39,
+      "check_data": 182,
+      "depot_or_repair": 2,
       "allocated": 2472,
       "fleet_in_pool": 26638,
+      "need_at_safety_1_0": 38935,
+      "fleet_coverage_of_need": 0.684,
+      "sum_target": 26638,
+      "sum_move": 0,
       "bikes_to_move": 4874,
+      "pct_fleet_moved": 18.3,
       "n_add": 1069,
       "n_remove": 1099,
       "n_keep": 304,
-      "intercept": 9.785000099764218,
-      "slope_per100": 4.577691959317959,
-      "r2": 0.12894966512865147,
-      "benchmark_per100": 23.188999036677057,
-      "zero_intercept_wald": 1731.6896879415497
+      "n_capacity_binding": 730,
+      "target_above_nominal_docks": 893,
+      "confidence_counts": {
+        "MEDIUM": 2165,
+        "HIGH": 247,
+        "LOW": 60
+      },
+      "strength_counts": {
+        "STRONG": 1225,
+        "MODERATE": 1210,
+        "WEAK": 37
+      },
+      "stockout_by_action": {
+        "ADD": 0.23962768942937324,
+        "KEEP": 0.10055592105263157,
+        "REMOVE": 0.030541401273885348
+      },
+      "spearman_move_stockout": 0.8368986717985062,
+      "spearman_move_demand": 0.05390838535204243
     },
     "Weekend": {
+      "weekpart": "Weekend",
       "stations_total": 2694,
+      "inactive": 39,
+      "check_data": 183,
+      "depot_or_repair": 2,
       "allocated": 2470,
       "fleet_in_pool": 27836,
+      "need_at_safety_1_0": 36854,
+      "fleet_coverage_of_need": 0.755,
+      "sum_target": 27836,
+      "sum_move": 0,
       "bikes_to_move": 4206,
+      "pct_fleet_moved": 15.1,
       "n_add": 1052,
       "n_remove": 1088,
       "n_keep": 330,
+      "n_capacity_binding": 743,
+      "target_above_nominal_docks": 996,
+      "confidence_counts": {
+        "MEDIUM": 2327,
+        "HIGH": 120,
+        "LOW": 23
+      },
+      "strength_counts": {
+        "MODERATE": 1326,
+        "STRONG": 1130,
+        "WEAK": 14
+      },
+      "stockout_by_action": {
+        "ADD": 0.20399429657794677,
+        "KEEP": 0.0717030303030303,
+        "REMOVE": 0.01710753676470588
+      },
+      "spearman_move_stockout": 0.8307227891240923,
+      "spearman_move_demand": 0.004254970850935233
+    }
+  },
+  "models": {
+    "Weekday": {
+      "n": 2472,
+      "intercept": 9.785000099764218,
+      "slope_per100": 4.577691959317959,
+      "r2": 0.12894966512865147,
+      "p_intercept": 2.817751710626374e-287,
+      "p_slope": 8.79653343577555e-21,
+      "intercept_ci": [
+        9.323908982167595,
+        10.246091217360842
+      ],
+      "slope_ci": [
+        3.6261778512677982,
+        5.52920606736812
+      ],
+      "benchmark_per100": 23.188999036677057,
+      "zero_intercept_wald": 1731.6896879415497,
+      "fixed_reference_wald": 1732.7341713524852,
+      "before_exclusions": {
+        "n": 2695,
+        "intercept": 9.795303171488827,
+        "slope_per100": 4.1465571438173825,
+        "r2": 0.10913324028852811
+      }
+    },
+    "Weekend": {
+      "n": 2470,
       "intercept": 10.323340420857344,
       "slope_per100": 4.267638450745887,
       "r2": 0.09325482607040769,
+      "p_intercept": 0,
+      "p_slope": 5.668676141948826e-26,
+      "intercept_ci": [
+        9.979357853809505,
+        10.667322987905182
+      ],
+      "slope_ci": [
+        3.4826361360540115,
+        5.052640765437761
+      ],
       "benchmark_per100": 27.784131153346713,
-      "zero_intercept_wald": 3463.298226084326
+      "zero_intercept_wald": 3463.298226084326,
+      "fixed_reference_wald": 3810.618260925329,
+      "before_exclusions": {
+        "n": 2694,
+        "intercept": 10.27244515893154,
+        "slope_per100": 3.928770736087647,
+        "r2": 0.0806433915339162
+      }
     }
   },
   "sensitivity": {
