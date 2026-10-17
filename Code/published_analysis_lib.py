@@ -141,7 +141,10 @@ def _fit_hc3(frame: pd.DataFrame) -> dict:
     data["demand_per_100"] = data["avg_predicted_daily_demand"] / 100.0
     X = sm.add_constant(data[["demand_per_100"]], has_constant="add")
     y = data["nominal_docks"].astype(float)
-    fit = sm.OLS(y, X).fit(cov_type="HC3")
+    # The published site uses HC3 covariance with t quantiles (df = n - 2).
+    # Explicit use_t=True is required; statsmodels otherwise defaults to
+    # normal/z inference for robust covariance, which changes the last CI digits.
+    fit = sm.OLS(y, X).fit(cov_type="HC3", use_t=True)
 
     ci = fit.conf_int()
     cov = fit.cov_params()
