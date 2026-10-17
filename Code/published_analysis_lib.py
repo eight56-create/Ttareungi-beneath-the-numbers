@@ -248,6 +248,9 @@ def _weekpart_system(frame: pd.DataFrame, reference_summary: Optional[dict]) -> 
         "fleet_in_pool": int(round(current.sum())),
         "need_at_safety_1_0": int(official_need),
         "need_sum_from_display_rows": row_need,
+        "fleet_coverage_of_need": float(
+            round(current.sum() / float(official_need), 3)
+        ),
         "sum_target": int(round(target.sum())),
         "sum_move": int(round(move.sum())),
         "bikes_to_move": int(round(move.abs().sum() / 2.0)),
