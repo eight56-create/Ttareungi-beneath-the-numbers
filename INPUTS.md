@@ -6,25 +6,19 @@ The project has two reproducibility paths. They should not be confused.
 
 This is the path used to reproduce the numbers in the live website and the Final V2 PDFs.
 
-Preferred input from the Pitch Canvas:
-
-```
-ttareungi_FINAL_recommendations_v2_202509.csv
-```
-
-Use either:
-
-```bash
-python Code/build_final_v2.py --recommendations /content/ttareungi_FINAL_recommendations_v2_202509.csv
-```
-
-or place the file at:
+The authoritative submitted Final V2 allocation export is committed at:
 
 ```
 inputs/ttareungi_FINAL_recommendations_v2_202509.csv
 ```
 
-If that CSV is not present, the repository uses the versioned
+To verify an external Pitch Canvas copy instead, use:
+
+```bash
+python Code/build_final_v2.py --recommendations /content/ttareungi_FINAL_recommendations_v2_202509.csv
+```
+
+The committed `inputs/` copy is used automatically. If that CSV is not present, the repository uses the versioned
 `site-data/recommendations-01.json` through
 `site-data/recommendations-09.json` snapshot. Those files contain the exact
 5,389 station x weekpart publication rows used by the website.
@@ -61,6 +55,36 @@ Source families documented by the project are:
 Use the same source versions as the Pitch Canvas submission if you want the
 same upstream master data.
 
+## C. Historical Final V2 allocation from the final master
+
+The restored original allocation builder is:
+
+```
+Code/final_v2_allocation_from_master.py
+```
+
+Run:
+
+```bash
+python -I Code/final_v2_allocation_from_master.py <input_folder> <output_folder>
+```
+
+It requires:
+
+```
+ttareungi_FINAL_master_with_supply_202509.csv
+```
+
+inside `<input_folder>`, and creates:
+
+```
+ttareungi_FINAL_recommendations_v2_202509.csv
+ttareungi_FINAL_system_check_v2_202509.csv
+ttareungi_FINAL_district_summary_v2_202509.csv
+```
+
+**Current boundary:** the repository does not yet contain the exact bridge that constructs `ttareungi_FINAL_master_with_supply_202509.csv` from the Step 03 demand-estimate output. Therefore it does not claim a single uninterrupted raw-data → official-allocation run. The original allocation builder and the submitted outputs are versioned here so this boundary is explicit.
+
 ## Files created by each script
 
 | Script | Main outputs | Used by |
@@ -68,6 +92,7 @@ same upstream master data.
 | `01_preprocessing.py` | `/content/ttareungi_regression_master_202509.csv`, `/content/ttareungi_regression_train_202509.csv`, plus documented spatial intermediate CSVs | Step 02 |
 | `02_regression_analysis.py` | `/content/ttareungi_master_with_regression_predictions_202509.csv`, regression coefficients and metrics | Step 03 |
 | `03_demand_prediction.py` | `/content/ttareungi_demand_estimates_202509.csv`, temporal validation CSV | Raw-data demand reconstruction |
+| `final_v2_allocation_from_master.py` | Final V2 recommendations, system check, district summary | Historical allocation reproduction from the final supply master |
 | `04_supply_comparison.py` | `reproduced-results/published_metrics.json`, HC3 results, weekpart totals, district summary, normalized publication rows | Final V2 publication audit |
 | `05_verify_published_results.py` | no analytical replacement file; exits 0 only when the publication contract matches exactly | Reproducibility gate |
 | `build_final_v2.py` | runs Step 04 and Step 05 in sequence | Recommended final command |
