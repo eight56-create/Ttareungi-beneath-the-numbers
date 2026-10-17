@@ -1,0 +1,3 @@
+weekpart,stations_total,inactive,check_data,depot_or_repair,allocated,fleet_in_pool,need_at_safety_1_0,fleet_coverage_of_need,sum_target,sum_move,bikes_to_move,pct_fleet_moved,n_add,n_remove,n_keep,n_capacity_binding,target_above_nominal_docks
+Weekday,2695,39,182,2,2472,26638,38935,0.684,26638,0,4874,18.3,1069,1099,304,730,893
+Weekend,2694,39,183,2,2470,27836,36854,0.755,27836,0,4206,15.1,1052,1088,330,743,996
