@@ -11,6 +11,15 @@ This repository contains the analysis code, the versioned publication data used
 by the live site, and a fail-fast reproducibility check for the submitted Final
 V2 results. Large raw source files are submitted separately in the Pitch Canvas.
 
+## Reproducibility scope
+
+- **Layer 1 — raw data:** `01_preprocessing.py → 02_regression_analysis.py → 03_demand_prediction.py` rebuild preprocessing, the upstream demand-factor regression, and demand estimation from the public raw-data layout documented in `INPUTS.md`.
+- **Historical Final V2 allocation builder:** `Code/final_v2_allocation_from_master.py` is the original fixed-fleet allocation script that produced the submitted Final V2 recommendation/system/district exports from `ttareungi_FINAL_master_with_supply_202509.csv`.
+- **Layer 2 — published results:** the committed `inputs/ttareungi_FINAL_recommendations_v2_202509.csv` is the authoritative submitted Final V2 allocation export. `Code/build_final_v2.py → 04_supply_comparison.py → 05_verify_published_results.py` recomputes and verifies the regression and redistribution results reported by the website/PDF.
+- **Not claimed:** one uninterrupted run from raw public data through Step 03 to `ttareungi_FINAL_master_with_supply_202509.csv` and then to the official allocation totals. That intermediate-build link is the remaining end-to-end reproducibility gap.
+
+A diagnostic rerun from the 80,601-row master can yield **4,876 / 4,212** because of integer-rounding ties; the submitted Final V2 allocation export contains the official **4,874 / 4,206** assignments.
+
 ## Reproduce the published numbers
 
 ### Environment
@@ -59,27 +68,20 @@ The publication contract is frozen in
 
 ### Reproduce from the original Final V2 CSV
 
-The preferred authoritative publication input is the file submitted in the
-Pitch Canvas:
+The authoritative submitted Final V2 allocation export is versioned in this repository:
 
 ```
-ttareungi_FINAL_recommendations_v2_202509.csv
+inputs/ttareungi_FINAL_recommendations_v2_202509.csv
 ```
 
-Run:
+To verify an external Pitch Canvas copy explicitly:
 
 ```bash
 python Code/build_final_v2.py \
   --recommendations /content/ttareungi_FINAL_recommendations_v2_202509.csv
 ```
 
-Alternatively place that CSV at:
-
-```
-inputs/ttareungi_FINAL_recommendations_v2_202509.csv
-```
-
-If the CSV is not supplied, the command uses the committed
+If the committed CSV is unavailable, the command uses the committed
 `site-data/recommendations-01.json` through
 `site-data/recommendations-09.json`. Those 5,389 station × weekpart rows are
 the exact publication snapshot read by the live website.
@@ -211,6 +213,28 @@ Outputs:
 /content/ttareungi_demand_results/temporal_validation_202509.csv
 ```
 
+**Validation scope:** Step 03 performs forward temporal validation of the historical normal-day baseline only. It is not independent held-out validation of the full effective-demand proxy, the regression fallback, or the Final V2 allocation model.
+
+### Historical Final V2 allocation builder
+
+`Code/final_v2_allocation_from_master.py`
+
+This is the original fixed-fleet/water-fill allocation code supplied with the Final V2 analysis. It expects:
+
+```
+ttareungi_FINAL_master_with_supply_202509.csv
+```
+
+and writes:
+
+```
+ttareungi_FINAL_recommendations_v2_202509.csv
+ttareungi_FINAL_system_check_v2_202509.csv
+ttareungi_FINAL_district_summary_v2_202509.csv
+```
+
+The submitted outputs are versioned in `inputs/` and `reference/`. The repository does **not** currently claim to reconstruct the required `ttareungi_FINAL_master_with_supply_202509.csv` directly from Step 03; that is the remaining end-to-end gap.
+
 ### Step 04 — published Final V2 analysis
 
 `Code/04_supply_comparison.py`
@@ -285,8 +309,9 @@ demand, and the analysis does not establish causality.
 ```
 Code/                  analysis and verification scripts
 site-data/             versioned rows/data read by the live website
-reference/             frozen published-result contract
-inputs/                optional location for the Pitch Canvas Final V2 CSV
+inputs/                authoritative submitted Final V2 recommendation CSV
+reference/             frozen publication contract + Final V2 summary exports
+docs/                  Final V2 allocation-method documentation
 files/                 submitted supporting PDFs
 reproduced-results/    generated locally by build_final_v2.py
 INPUTS.md              exact raw/publication input layout
