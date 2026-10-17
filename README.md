@@ -1,166 +1,295 @@
-# Ttareungi Beneath the Numbers
+# Ttareungi — Beneath the Numbers
 
 HYC Intercollege ACDT Group 19
 
-This repository contains the reproducible analysis code for our project on whether Seoul Ttareungi supply is aligned with estimated demand.
+**Research question:** Is Seoul Ttareungi bicycle supply proportional to estimated
+demand, and how could the existing fleet be redistributed if it is not?
 
-Website: https://eight56-create.github.io/Ttareungi-beneath-the-numbers/
+Live site: https://eight56-create.github.io/Ttareungi-beneath-the-numbers/
 
-Repository source: https://github.com/eight56-create/Ttareungi-beneath-the-numbers
+This repository contains the analysis code, the versioned publication data used
+by the live site, and a fail-fast reproducibility check for the submitted Final
+V2 results. Large raw source files are submitted separately in the Pitch Canvas.
 
-Raw data and supporting documents are submitted separately through the project Pitch Canvas.
+## Reproduce the published numbers
 
-## Run order
+### Environment
 
-Install dependencies first:
+Reference environment:
+
+- Python 3.13
+- dependency versions are pinned in `requirements.txt`
+- the smaller publication-only environment is in `requirements-repro.txt`
+
+Install:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Then run:
+For the publication check only:
+
+```bash
+pip install -r requirements-repro.txt
+```
+
+### One-command reproduction
+
+From the repository root:
+
+```bash
+python Code/build_final_v2.py
+```
+
+This command recomputes the statistics from the versioned Final V2 publication
+rows and then runs `Code/05_verify_published_results.py`. It exits with an
+error if a published result changes.
+
+Expected headline checks:
+
+| Check | Weekday | Weekend |
+| --- | ---: | ---: |
+| Stations in fitted ALLOCATED sample | 2,472 | 2,470 |
+| Fixed fleet in allocation pool | 26,638 | 27,836 |
+| Bikes to reallocate | **4,874** | **4,206** |
+| HC3 Wald χ²(1), intercept = 0 | **1,731.689688** | **3,463.298226** |
+
+The publication contract is frozen in
+`reference/published_results.json`.
+
+### Reproduce from the original Final V2 CSV
+
+The preferred authoritative publication input is the file submitted in the
+Pitch Canvas:
+
+```
+ttareungi_FINAL_recommendations_v2_202509.csv
+```
+
+Run:
+
+```bash
+python Code/build_final_v2.py \
+  --recommendations /content/ttareungi_FINAL_recommendations_v2_202509.csv
+```
+
+Alternatively place that CSV at:
+
+```
+inputs/ttareungi_FINAL_recommendations_v2_202509.csv
+```
+
+If the CSV is not supplied, the command uses the committed
+`site-data/recommendations-01.json` through
+`site-data/recommendations-09.json`. Those 5,389 station × weekpart rows are
+the exact publication snapshot read by the live website.
+
+## Why the final pipeline is separated from Steps 01–03
+
+An earlier repository version had an important reproducibility problem:
+`04_supply_comparison.py` performed a **different** analysis from the submitted
+website/PDF. It regressed estimated demand on midnight stock and performed a
+daily redistribution.
+
+The submitted Final V2 analysis instead uses:
+
+```
+Nominal docks = beta0 + beta1 * (mean predicted daily demand / 100)
+```
+
+with separate Weekday/Weekend HC3 fits on the Final V2 station × weekpart
+allocation rows. The official redistribution totals also come from that frozen
+Final V2 export.
+
+The current repository therefore makes the distinction explicit:
+
+1. **Steps 01–03:** reconstruct the upstream demand-model inputs from raw public
+   data.
+2. **Step 04:** recompute the analysis actually reported by the website/PDF from
+   the authoritative Final V2 analytical export.
+3. **Step 05:** compare every contractual result with the frozen reference and
+   fail if it differs.
+4. **`build_final_v2.py`:** runs Steps 04 and 05 together.
+
+This avoids presenting a different rerun as if it were the submitted analysis.
+
+### Rounding-tie note
+
+A previous raw-master audit reproduced all target quantities and ratings, but
+222 starting-inventory rows had exact 0.5 largest-remainder ties. A generic
+rerun can therefore produce **4,876 / 4,212** instead of the official
+**4,874 / 4,206** even though both assignments conserve the same fleet.
+
+For publication reproducibility, the frozen Final V2 export is the canonical
+tie assignment. The verifier treats 4,874 / 4,206 as the only published result
+and fails if the diagnostic 4,876 / 4,212 values replace it.
+
+## Raw-data reconstruction
+
+The team's original Colab-style raw-data pipeline remains available.
+
+Place the required raw files in `/content/` as documented in
+[`INPUTS.md`](INPUTS.md), then run:
 
 ```bash
 python Code/01_preprocessing.py
 python Code/02_regression_analysis.py
 python Code/03_demand_prediction.py
-python Code/04_supply_comparison.py
 ```
 
-For the final website allocation output, `Code/build_final_v2.py` is the entry point and runs the same Step 4 final-v2 logic.
-
-## Input files
-
-The scripts expect the project input files in `/content/`, matching our Google Colab workflow. Main inputs include:
-
-- `서울특별시 공공자전거 이용정보(시간대별)_202509.csv`
-- `data_2509.csv`
-- `공공자전거 대여소 정보(25.6월 기준).xlsx`
-- September 2025 living-population files
-- 2024 business-establishment data and spatial grid files
-- subway-station information file
-
-Raw data are not stored in this repository because several source files are too large for normal GitHub storage. They are linked separately in the Pitch Canvas.
-
-## Analysis pipeline
-
-### 1. Preprocessing
+### Step 01 — preprocessing
 
 `Code/01_preprocessing.py`
 
-- Aggregates hourly Ttareungi rentals
-- Merges hourly available-bike inventory
-- Defines hourly stockout observations
-- Builds station-day data
-- Creates 500 m living-population and business-density features
-- Calculates nearest-subway distance
-- Builds the regression-ready master dataset
+Main work:
 
-A normal-supply day is defined as a station-day with no hourly stockout observation:
+- aggregate hourly Ttareungi rentals;
+- merge hourly available-bike snapshots;
+- define stockout observations;
+- create station-day records;
+- merge living population, business density and subway distance;
+- create the regression-ready master data.
+
+Main outputs include:
+
+```
+/content/ttareungi_regression_master_202509.csv
+/content/ttareungi_regression_train_202509.csv
+/content/ttareungi_regression_train_simple_202509.csv
+```
+
+A normal day is a station-day with no hourly stockout observation:
 
 ```
 stockout_observations == 0
 ```
 
-An hourly stockout observation means that available bicycles were recorded as zero at that hourly snapshot. It does not prove that the station was empty for the entire hour.
+An hourly stockout observation means available bicycles were recorded as zero
+at that snapshot; it does not prove the station was empty continuously for the
+whole hour.
 
-### 2. Demand-factor regression
+### Step 02 — demand-factor regression
 
 `Code/02_regression_analysis.py`
 
-This is the regression used to study environmental factors associated with observed rentals.
-
 Dependent variable:
+
 - observed daily rentals
 
 Predictors:
-- living population
-- business density
-- subway distance
-- weekend indicator
 
-Training uses non-stockout station-days that pass the regression quality filters.
+- living population;
+- business density;
+- subway distance;
+- weekend indicator.
 
-Inference uses station-clustered robust standard errors.
+Training uses non-stockout station-days passing the quality filters, with
+station-clustered robust standard errors.
 
-This regression is different from the supply-versus-demand statistical test used on the website.
+Outputs:
 
-### 3. Demand estimation and validation
+```
+/content/ttareungi_regression_results/regression_coefficients_202509.csv
+/content/ttareungi_regression_results/regression_metrics_202509.csv
+/content/ttareungi_master_with_regression_predictions_202509.csv
+```
+
+### Step 03 — demand estimation
 
 `Code/03_demand_prediction.py`
 
-Historical demand is estimated from non-stockout days:
+Demand hierarchy:
 
-1. Same station and same weekday/weekend group, at least 3 non-stockout days
-2. Same station across all non-stockout days, at least 5 days
-3. Regression prediction as fallback when historical baseline is unavailable
+1. station mean on normal days of the same weekpart, if at least 3 days;
+2. station mean over all normal days, if at least 5 days;
+3. regression estimate otherwise.
 
-The script includes forward temporal validation of the historical baseline by training on earlier dates and evaluating later dates.
+Outputs:
 
-Important limitation:
-- the historical demand estimation has temporal validation;
-- the complete hybrid-demand plus redistribution pipeline has not been validated end-to-end on a fully independent external dataset.
+```
+/content/ttareungi_demand_estimates_202509.csv
+/content/ttareungi_demand_results/temporal_validation_202509.csv
+```
 
-Therefore the project should not describe the entire pipeline as either completely unvalidated or fully externally validated.
-
-### 4. Supply comparison and final V2 redistribution
+### Step 04 — published Final V2 analysis
 
 `Code/04_supply_comparison.py`
 
-This script contains two separate analyses.
-
-#### A. Website statistical test
-
-The website supply-demand regression is:
+This is now the analysis actually reported by the site/PDF. It creates:
 
 ```
-Estimated daily demand = beta0 + beta1 * midnight bicycle supply
+reproduced-results/published_metrics.json
+reproduced-results/website_statistical_test_HC3.csv
+reproduced-results/final_v2_weekpart_totals.csv
+reproduced-results/final_v2_district_summary.csv
+reproduced-results/final_v2_publication_rows.csv
 ```
 
-It uses HC3 robust standard errors.
+### Step 05 — exact publication verification
 
-The proportional benchmark is:
+`Code/05_verify_published_results.py`
 
+Checks include:
+
+- 5,389 total station × weekpart rows;
+- 4,942 ALLOCATED rows;
+- 2,472 / 2,470 fitted stations;
+- 26,638 / 27,836 fixed fleet totals;
+- **4,874 / 4,206** bikes to reallocate;
+- HC3 intercept, slope, R² and proportional benchmark;
+- Wald **1,731.689688 / 3,463.298226**;
+- sensitivity-agreement rates;
+- published flag counts;
+- exact fleet conservation and `move = target - current`.
+
+## Input files and sources
+
+See [`INPUTS.md`](INPUTS.md) for exact filenames and locations.
+
+Source families used by the project:
+
+- Seoul Open Data Plaza — Ttareungi hourly usage, available-bike snapshots,
+  station information and living-population data;
+- Statistics Korea / Census on Establishments — business-establishment data;
+- public rail-station information — station names/locations.
+
+The exact large raw files used by the team are in the Pitch Canvas submission
+rather than GitHub.
+
+## Reproducibility CI
+
+GitHub Actions runs:
+
+```bash
+python Code/build_final_v2.py
 ```
-k = total estimated demand / total midnight bicycle supply
-```
 
-Under strict proportionality, the intercept should be near zero and the slope should be near `k`.
-
-The script also reports a Wald comparison of the estimated slope against the proportional benchmark. This is separate from the clustered-SE demand-factor regression in Step 2.
-
-#### B. Final V2 redistribution
-
-The final redistribution scenario:
-
-- keeps the total bicycle fleet fixed;
-- allocates bicycles according to estimated demand;
-- uses 1.5 times nominal dock count as a soft dock limit;
-- redistributes overflow to stations with remaining room;
-- preserves zero net fleet change.
-
-The soft dock limit is an operational scenario constraint, not a claim that nominal dock count is a strict physical maximum.
-
-## Final-V2 entry point
-
-`Code/build_final_v2.py`
-
-This is a short entry-point script that runs the final Step 4 supply comparison and redistribution logic.
-
-Using the same input files and versions as the website is required to reproduce the published website CSV and movement totals exactly.
+on pushes and pull requests using
+`.github/workflows/reproducibility.yml`. A changed publication result causes
+the job to fail.
 
 ## Statistical-method distinction
 
-There are two regressions in the project and they should not be mixed:
+There are two different regression tasks:
 
 | Analysis | Purpose | Robust SE |
 | --- | --- | --- |
-| Step 2 demand-factor regression | Which urban factors are associated with rentals? | Station-clustered |
-| Step 4 supply-demand regression | Is bicycle supply proportional to estimated demand? | HC3 |
+| Step 02 demand-factor regression | Which urban factors are associated with observed rentals? | Station-clustered |
+| Final V2 supply-demand regression | Is nominal dock capacity proportional to the predicted-demand proxy? | HC3 |
 
-## Reproducibility notes
+The Final V2 result is exploratory. Predicted demand is a proxy for effective
+demand, and the analysis does not establish causality.
 
-- All repository paths use Colab-style `/content/` paths rather than personal Windows paths.
-- No raw data are committed here.
-- Final numeric results depend on using the same source-data versions as the website.
-- `requirements.txt` lists the Python packages used by the pipeline.
+## Repository map
+
+```
+Code/                  analysis and verification scripts
+site-data/             versioned rows/data read by the live website
+reference/             frozen published-result contract
+inputs/                optional location for the Pitch Canvas Final V2 CSV
+files/                 submitted supporting PDFs
+reproduced-results/    generated locally by build_final_v2.py
+INPUTS.md              exact raw/publication input layout
+requirements.txt       full pinned environment
+requirements-repro.txt minimal publication-verification environment
+```
