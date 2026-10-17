@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ttareungi HTML Feedback Patcher</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:760px;margin:40px auto;padding:0 20px;line-height:1.6}
+button,input{font-size:16px;margin:8px 0;padding:10px 14px}
+pre{white-space:pre-wrap;background:#f5f5f5;padding:14px;border-radius:8px}
+.ok{color:#0a7a2f}.bad{color:#b00020}
+</style>
+</head>
+<body>
+<h1>Ttareungi feedback patcher</h1>
+<p>원본 <code>ttareungi-research.html</code>을 선택하면 디자인/CSS/레이아웃은 그대로 두고 피드백 문구만 수정한 HTML을 내려받습니다.</p>
+<input id="file" type="file" accept=".html,text/html"><br>
+<button id="run">수정본 만들기</button>
+<pre id="log">파일을 선택하세요.</pre>
+<script>
+const replacements=[
+[
+'<p class="note">V2 adds nominal dock counts, midnight inventory, and district labels. We reanalyze the capacity-demand association and inspect a fixed-fleet redistribution scenario. Neither a significant slope nor a reallocation plan alone settles H₀.</p>',
+'<p class="note">V2 adds nominal dock counts, midnight inventory, and district labels. We reanalyze the capacity-demand association and inspect a fixed-fleet redistribution scenario. Neither a significant slope nor a reallocation plan alone settles the original regional effective-demand H₀.</p><p class="note"><b>Proxy-level proportionality result:</b> The nonredundant HC3 Wald test rejects the zero-intercept restriction in the station-level predicted-demand model (Weekday: χ²(1) = 1,731.69; Weekend: χ²(1) = 3,463.30; p &lt; 1e−300). Thus, strict proportionality is rejected within this predicted-demand proxy model. This does not constitute a formal rejection of the original regional effective-demand H₀.</p>'
+],
+[
+'<p><b>Stockouts and inventory:</b> stockout_rate_mean is a supplied mean daily snapshot ratio. It is not a measured continuous empty duration. B is mean midnight stock. Daily rebalancing is not observed. Recommendation-stockout correlation is partly mechanical and does not independently validate the model.</p>',
+'<p><b>Stockouts and inventory:</b> stockout_rate_mean is a supplied mean daily snapshot ratio. It is not a measured continuous empty duration. B is mean midnight stock. Daily rebalancing is not observed. Recommendation-stockout correlation is partly mechanical and does not independently validate the model.</p><p><b>Normal-day definition:</b> A normal day is a station-day with no hourly snapshot showing zero available bicycles. Historical-baseline demand is built from normal-day station history; in the final allocation pool, 4,312 station-weekpart rows use historical-baseline demand and 630 use regression fallback. These predicted-demand values remain proxies rather than directly observed latent demand.</p>'
+],
+[
+'<p class="note">The complete source code and reproducibility package can be downloaded above, alongside the original supplied data and comparison record.</p>',
+'<p class="note">The complete source code and reproducibility package can be downloaded above, alongside the original supplied data and comparison record. Source repository: <a href="https://github.com/eight56-create/Ttareungi-beneath-the-numbers" target="_blank" rel="noopener">GitHub / Ttareungi-beneath-the-numbers</a>.</p>'
+],
+[
+"B:{badge:'THEORY / HIDDEN MECHANISMS',intro:'Plausible mechanisms from the research plans and v2 limitations. Dashed arrows are hypotheses, not estimated causal effects. Hidden features were not included in the one-predictor regression.'",
+"B:{badge:'THEORY / HIDDEN MECHANISMS',intro:'Plausible mechanisms from the research plans and v2 limitations. Conceptually, transit, population, commercial activity, weather and spatial constraints may act as confounders or moderators; availability may mediate realized rentals; and demand, availability and rebalancing can form feedback loops. These roles are hypotheses, not causally identified effects. Hidden features were not included in the one-predictor regression.'"
+],
+[
+"'Rail access can complement bike use or reduce reliance on bikes. This hidden explanation was not tested in the v2 one-predictor fit.'",
+"'Potential confounder or moderator: rail access can complement bike use or reduce reliance on bikes. This role was not causally identified or tested in the v2 one-predictor fit.'"
+],
+[
+"'Population and commercial activity could explain demand heterogeneity. Their coefficients are not estimated here and must not be called empirically non-significant.'",
+"'Potential confounders or moderators: population and commercial activity could explain demand heterogeneity. Their effects are not estimated in the v2 one-predictor fit and must not be called empirically non-significant.'"
+],
+[
+"'Calendar and weather affect use and operations. The September scenarios do not establish seasonal demand or causal calendar effects.'",
+"'Potential moderator or confounder: calendar and weather can change both use and operations. The September scenarios do not establish seasonal demand or causal calendar effects.'"
+],
+[
+"'Available stock and stockouts connect operations to completed rentals. Data-definition mismatches and nominal-dock overflows require verification.'",
+"'Potential mediator and feedback mechanism: available stock and stockouts connect operations to completed rentals, while rentals reduce availability and rebalancing can restore it. These roles are conceptual, not causally identified. Data-definition mismatches and nominal-dock overflows require verification.'"
+],
+[
+'<p class="note">Joint restrictions: β₀ = 0 and β₁ = k, in docks / 100 requests. For OLS with an intercept, k = ȳ/x̄ = β̂₁ + β̂₀/x̄. Because k is calculated from these same observations, the second condition adds no independent restriction when β₀ = 0. The nonredundant HC3 Wald uses χ²(1). A χ²(2) comparison that treats k as fixed is also reported as a conditional sensitivity check. Neither is the planned regional effective-demand test or causal evidence.</p>',
+'<p class="note"><b>Zero-intercept restriction (nonredundant):</b> β₀ = 0 is the independent same-sample proportionality restriction. For OLS with an intercept, k = ȳ/x̄ = β̂₁ + β̂₀/x̄, so β₁ = k adds no independent restriction once β₀ = 0. <b>Joint test, k fixed (conditional):</b> the reported χ²(2) comparison treats the observed k as fixed and is therefore a conditional sensitivity check. Neither check is the planned regional effective-demand test or causal evidence.</p>'
+],
+['REVISION: 15 OCTOBER 2026','REVISION: 17 OCTOBER 2026']
+];
+
+document.getElementById('run').onclick=async()=>{
+ const f=document.getElementById('file').files[0];
+ const log=document.getElementById('log');
+ if(!f){log.textContent='원본 HTML 파일을 먼저 선택하세요.';return;}
+ let html=await f.text();
+ const original=html;
+ let lines=[];
+ for(let i=0;i<replacements.length;i++){
+   const [a,b]=replacements[i];
+   if(!html.includes(a)){lines.push('✗ anchor '+(i+1)+' not found');continue;}
+   html=html.replace(a,b); lines.push('✓ patch '+(i+1));
+ }
+ const style=s=>{const m=s.match(/<style>[\s\S]*?<\/style>/);return m?m[0]:''};
+ if(style(original)!==style(html)){
+   lines.push('✗ CSS guard failed. 다운로드를 중단합니다.');
+   log.textContent=lines.join('\n'); return;
+ }
+ for(const token of ['<svg','class="section','class="chart','class="system-wrap','<header','<footer']){
+   if(original.split(token).length!==html.split(token).length){
+     lines.push('✗ structure guard failed: '+token);
+     log.textContent=lines.join('\n'); return;
+   }
+ }
+ const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='ttareungi-research-feedback-revised.html';
+ document.body.appendChild(a); a.click(); a.remove();
+ setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+ lines.push('✓ 디자인/CSS 구조 유지 확인');
+ lines.push('✓ 수정본 다운로드 시작');
+ log.textContent=lines.join('\n');
+};
+</script>
+</body>
+</html>
