@@ -4,7 +4,9 @@ HYC Intercollege ACDT Group 19
 
 This repository contains the reproducible analysis code for our project on whether Seoul Ttareungi supply is aligned with estimated demand.
 
-Website: https://ttareungi-beneath-the-numbers.aurorasong32.chatgpt.site/
+Website: https://eight56-create.github.io/Ttareungi-beneath-the-numbers/
+
+Repository source: https://github.com/eight56-create/Ttareungi-beneath-the-numbers
 
 Raw data and supporting documents are submitted separately through the project Pitch Canvas.
 
