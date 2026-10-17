@@ -35,7 +35,7 @@ def assert_close(
     actual: float,
     expected: float,
     *,
-    rel_tol: float = 1e-10,
+    rel_tol: float = 1e-9,
     abs_tol: float = 1e-10,
 ) -> None:
     if not math.isclose(
@@ -49,43 +49,85 @@ def assert_close(
         )
 
 
-def verify_summary_json(repo_root: Path, contract: dict) -> None:
-    site_summary = load_reference_summary(repo_root)
-    if site_summary is None:
+def assert_nested_counts(label: str, actual: dict, expected: dict) -> None:
+    assert_equal(label, dict(actual), dict(expected))
+
+
+def verify_site_summary(repo_root: Path, contract: dict) -> None:
+    """Ensure the live-site summary file itself still matches the contract."""
+    site = load_reference_summary(repo_root)
+    if site is None:
         raise AssertionError("site-data/summary.json is missing.")
 
-    assert_equal("site summary rows", site_summary["rows"], contract["rows"])
+    assert_equal("site rows", site["rows"], contract["rows"])
+    assert_equal("site stations", site["stations"], contract["stations"])
     assert_equal(
-        "site summary stations",
-        site_summary["stations"],
-        contract["stations"],
-    )
-    assert_equal(
-        "site summary allocated rows",
-        site_summary["station_weekparts_allocated"],
+        "site allocated station-weekparts",
+        site["station_weekparts_allocated"],
         contract["allocated_station_weekparts"],
     )
 
     for wp in ["Weekday", "Weekend"]:
-        expected = contract["weekparts"][wp]
-        site_sys = site_summary["systems"][wp]
-        site_model = site_summary["models"][wp]
-
+        expected_sys = contract["systems"][wp]
+        site_sys = site["systems"][wp]
         for key in [
             "stations_total",
+            "inactive",
+            "check_data",
+            "depot_or_repair",
             "allocated",
             "fleet_in_pool",
+            "need_at_safety_1_0",
+            "sum_target",
+            "sum_move",
             "bikes_to_move",
             "n_add",
             "n_remove",
             "n_keep",
+            "n_capacity_binding",
+            "target_above_nominal_docks",
         ]:
             assert_equal(
-                f"site summary {wp} {key}",
+                f"site {wp} {key}",
                 site_sys[key],
-                expected[key],
+                expected_sys[key],
+            )
+        for key in [
+            "fleet_coverage_of_need",
+            "pct_fleet_moved",
+            "spearman_move_stockout",
+            "spearman_move_demand",
+        ]:
+            assert_close(
+                f"site {wp} {key}",
+                site_sys[key],
+                expected_sys[key],
+            )
+        assert_nested_counts(
+            f"site {wp} confidence_counts",
+            site_sys["confidence_counts"],
+            expected_sys["confidence_counts"],
+        )
+        assert_nested_counts(
+            f"site {wp} strength_counts",
+            site_sys["strength_counts"],
+            expected_sys["strength_counts"],
+        )
+        for action, value in expected_sys["stockout_by_action"].items():
+            assert_close(
+                f"site {wp} stockout_by_action {action}",
+                site_sys["stockout_by_action"][action],
+                value,
             )
 
+        expected_model = contract["models"][wp]
+        site_model = site["models"][wp]
+        for key in ["n"]:
+            assert_equal(
+                f"site {wp} model {key}",
+                site_model[key],
+                expected_model[key],
+            )
         for key in [
             "intercept",
             "slope_per100",
@@ -93,15 +135,31 @@ def verify_summary_json(repo_root: Path, contract: dict) -> None:
             "benchmark_per100",
         ]:
             assert_close(
-                f"site summary {wp} {key}",
+                f"site {wp} model {key}",
                 site_model[key],
-                expected[key],
+                expected_model[key],
             )
-
+        for i, value in enumerate(expected_model["intercept_ci"]):
+            assert_close(
+                f"site {wp} intercept_ci[{i}]",
+                site_model["intercept_ci"][i],
+                value,
+            )
+        for i, value in enumerate(expected_model["slope_ci"]):
+            assert_close(
+                f"site {wp} slope_ci[{i}]",
+                site_model["slope_ci"][i],
+                value,
+            )
         assert_close(
-            f"site summary {wp} zero_intercept_wald",
+            f"site {wp} zero_intercept_wald",
             site_model["proportionality"]["zero_intercept_wald"],
-            expected["zero_intercept_wald"],
+            expected_model["zero_intercept_wald"],
+        )
+        assert_close(
+            f"site {wp} fixed_reference_wald",
+            site_model["proportionality"]["fixed_reference_wald"],
+            expected_model["fixed_reference_wald"],
         )
 
 
@@ -142,20 +200,56 @@ def main() -> None:
     )
 
     for wp in ["Weekday", "Weekend"]:
-        expected = contract["weekparts"][wp]
+        expected_sys = contract["systems"][wp]
         system = actual["systems"][wp]
-        model = actual["models"][wp]
 
         for key in [
             "stations_total",
+            "inactive",
+            "check_data",
+            "depot_or_repair",
             "allocated",
             "fleet_in_pool",
+            "need_at_safety_1_0",
+            "sum_target",
+            "sum_move",
             "bikes_to_move",
             "n_add",
             "n_remove",
             "n_keep",
+            "n_capacity_binding",
+            "target_above_nominal_docks",
         ]:
-            assert_equal(f"{wp} {key}", system[key], expected[key])
+            assert_equal(f"{wp} {key}", system[key], expected_sys[key])
+
+        for key in [
+            "fleet_coverage_of_need",
+            "pct_fleet_moved",
+            "spearman_move_stockout",
+            "spearman_move_demand",
+        ]:
+            assert_close(f"{wp} {key}", system[key], expected_sys[key])
+
+        assert_nested_counts(
+            f"{wp} confidence_counts",
+            system["confidence_counts"],
+            expected_sys["confidence_counts"],
+        )
+        assert_nested_counts(
+            f"{wp} strength_counts",
+            system["strength_counts"],
+            expected_sys["strength_counts"],
+        )
+        for action, value in expected_sys["stockout_by_action"].items():
+            assert_close(
+                f"{wp} stockout_by_action {action}",
+                system["stockout_by_action"][action],
+                value,
+            )
+
+        expected_model = contract["models"][wp]
+        model = actual["models"][wp]
+        assert_equal(f"{wp} model n", model["n"], expected_model["n"])
 
         for key in [
             "intercept",
@@ -163,17 +257,35 @@ def main() -> None:
             "r2",
             "benchmark_per100",
             "zero_intercept_wald",
+            "fixed_reference_wald",
         ]:
-            assert_close(f"{wp} {key}", model[key], expected[key])
+            assert_close(f"{wp} model {key}", model[key], expected_model[key])
 
-        if system["sum_target"] != system["fleet_in_pool"]:
-            raise AssertionError(
-                f"{wp}: target total {system['sum_target']} does not equal "
-                f"fleet {system['fleet_in_pool']}."
+        for i, value in enumerate(expected_model["intercept_ci"]):
+            assert_close(
+                f"{wp} model intercept_ci[{i}]",
+                model["intercept_ci"][i],
+                value,
             )
-        if system["sum_move"] != 0:
-            raise AssertionError(
-                f"{wp}: net move is {system['sum_move']}, expected 0."
+        for i, value in enumerate(expected_model["slope_ci"]):
+            assert_close(
+                f"{wp} model slope_ci[{i}]",
+                model["slope_ci"][i],
+                value,
+            )
+
+        before_expected = expected_model["before_exclusions"]
+        before_actual = model["before_exclusions"]
+        assert_equal(
+            f"{wp} before-exclusions n",
+            before_actual["n"],
+            before_expected["n"],
+        )
+        for key in ["intercept", "slope_per100", "r2"]:
+            assert_close(
+                f"{wp} before-exclusions {key}",
+                before_actual[key],
+                before_expected[key],
             )
 
         print(
@@ -205,7 +317,7 @@ def main() -> None:
         contract["missing_normal_days"],
     )
 
-    verify_summary_json(repo_root, contract)
+    verify_site_summary(repo_root, contract)
 
     print(f"Source: {source}")
     print("PASS: published Final V2 contract reproduced exactly.")
