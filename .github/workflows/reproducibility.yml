@@ -1,0 +1,26 @@
+name: Reproduce published Final V2
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install minimal reproduction dependencies
+        run: pip install -r requirements-repro.txt
+
+      - name: Reproduce and verify published results
+        run: python Code/build_final_v2.py
