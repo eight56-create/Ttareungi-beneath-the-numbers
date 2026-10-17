@@ -5,7 +5,7 @@
 # 2025-09
 #
 # INPUT
-# 1) ttareungi_FINAL_master_202509(1).csv
+# 1) ttareungi_FINAL_master_202509.csv
 # 2) 공공자전거 대여소 정보(25.6월 기준)(2).xlsx
 # 3) data_2509.csv
 #
